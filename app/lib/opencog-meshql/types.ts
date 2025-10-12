@@ -183,3 +183,49 @@ export interface AtomPath {
   atoms: string[]; // Ordered array of atom IDs
   links: string[]; // Links connecting the atoms
 }
+
+/**
+ * Help article from the help center
+ */
+export interface HelpArticle {
+  id: string;
+  categoryId: string;
+  title: string;
+  content: string;
+  url: string;
+  tags: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Help category
+ */
+export interface HelpCategory {
+  id: string;
+  name: string;
+  description: string;
+  order: number;
+}
+
+/**
+ * Help section
+ */
+export interface HelpSection {
+  id: string;
+  categoryId: string;
+  name: string;
+  articles: HelpArticle[];
+}
+
+/**
+ * Knowledge graph statistics
+ */
+export interface KnowledgeGraphStats {
+  totalAtoms: number;
+  totalLinks: number;
+  categories: number;
+  articles: number;
+  tags: number;
+  lastSync?: Date;
+}
