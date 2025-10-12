@@ -37,11 +37,20 @@ Queries define operations to be executed across the mesh:
 - **Timeout**: Maximum execution time
 - **Retry Policy**: Automatic retry configuration
 
-#### Atomspace
-Distributed knowledge representation using atoms:
+#### Atomspace & HyperGraph
+Distributed knowledge representation using atoms and links:
 - **Atoms**: Basic units of knowledge with type, name, and values
+- **Links**: Hyperedges connecting atoms to form relationships
 - **Truth Values**: Probabilistic reasoning with strength and confidence
 - **Attention Values**: Focus management with short/long-term importance
+
+#### HyperGraphQL
+Query language for traversing and querying the hypergraph:
+- **Traverse**: Navigate the graph from a starting point
+- **Match**: Find atoms/links matching a pattern
+- **Find**: Search using filters
+- **Direction**: Control traversal (incoming/outgoing/both)
+- **Depth**: Limit traversal depth
 
 ## Usage
 
@@ -173,6 +182,84 @@ const atom = meshService.getAtom('subscription-concept');
 const conceptNodes = meshService.queryAtomsByType('ConceptNode');
 ```
 
+### Working with HyperGraph (Links)
+
+```typescript
+import {HyperGraphQLBuilder, LinkType} from '~/lib/opencog-meshql';
+
+// Create atoms
+meshService.addAtom({
+  id: 'human',
+  type: 'ConceptNode',
+  name: 'Human',
+});
+
+meshService.addAtom({
+  id: 'animal',
+  type: 'ConceptNode',
+  name: 'Animal',
+});
+
+// Create a link between atoms (Human inherits from Animal)
+meshService.addLink({
+  id: 'inheritance-1',
+  type: LinkType.InheritanceLink,
+  outgoing: ['human', 'animal'],
+  truthValue: {
+    strength: 1.0,
+    confidence: 0.95,
+  },
+});
+
+// Get incoming/outgoing links
+const incomingLinks = meshService.getIncomingLinks('animal');
+const outgoingLinks = meshService.getOutgoingLinks('human');
+```
+
+### HyperGraphQL Queries
+
+```typescript
+// Traverse the graph from a starting atom
+const traverseQuery = HyperGraphQLBuilder.create()
+  .operation('traverse')
+  .startFrom('root-atom')
+  .direction('outgoing')  // or 'incoming' or 'both'
+  .depth(3)
+  .build();
+
+const traverseResult = meshService.executeHyperGraphQuery(traverseQuery);
+console.log('Found atoms:', traverseResult.atoms);
+console.log('Found links:', traverseResult.links);
+
+// Match a pattern in the graph
+const matchQuery = HyperGraphQLBuilder.create()
+  .operation('match')
+  .pattern(HyperGraphQLBuilder.pattern({
+    type: 'ConceptNode',
+    name: 'Subscription',
+  }))
+  .build();
+
+const matchResult = meshService.executeHyperGraphQuery(matchQuery);
+
+// Find atoms with filters
+const findQuery = HyperGraphQLBuilder.create()
+  .operation('find')
+  .filter({
+    field: 'type',
+    operator: 'equals',
+    value: 'InheritanceLink',
+  })
+  .filter({
+    field: 'name',
+    operator: 'contains',
+    value: 'Customer',
+  })
+  .build();
+
+const findResult = meshService.executeHyperGraphQuery(findQuery);
+```
+
 ### Configuration
 
 Add meshQL scheduler to your app configuration:
@@ -242,6 +329,17 @@ The module includes comprehensive test coverage:
 npm run test app/lib/opencog-meshql
 ```
 
+## HyperGraph Features
+
+The hypergraph implementation provides:
+
+- **Link Types**: InheritanceLink, SimilarityLink, EvaluationLink, ImplicationLink, and more
+- **Graph Traversal**: Navigate incoming/outgoing links with depth control
+- **Pattern Matching**: Find atoms/links matching specific patterns
+- **Bidirectional Indexing**: Fast lookup of incoming and outgoing links
+- **Truth Values on Links**: Probabilistic relationships between atoms
+- **Complex Queries**: Combine patterns, filters, and traversal
+
 ## Future Enhancements
 
 Potential areas for expansion:
@@ -249,9 +347,11 @@ Potential areas for expansion:
 1. **Network Communication**: Implement actual HTTP/WebSocket communication between nodes
 2. **Consensus Protocols**: Add distributed consensus for atomspace synchronization
 3. **Load Balancing**: Implement smart job distribution based on node capabilities and load
-4. **Persistence**: Add distributed persistence for atomspace
-5. **Monitoring Dashboard**: Create real-time visualization of mesh operations
+4. **Persistence**: Add distributed persistence for atomspace and hypergraph
+5. **Monitoring Dashboard**: Create real-time visualization of mesh operations and graph structure
 6. **Security**: Add authentication and authorization for node communication
+7. **Advanced Pattern Matching**: Implement more sophisticated pattern matching algorithms
+8. **Graph Algorithms**: Add path finding, centrality measures, and community detection
 
 ## References
 

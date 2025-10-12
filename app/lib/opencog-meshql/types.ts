@@ -111,3 +111,121 @@ export interface AttentionValue {
   lti: number; // Long-term importance
   vlti: number; // Very long-term importance
 }
+
+/**
+ * Link representation in OpenCog hypergraph (hyperedge)
+ * Links connect atoms to form relationships
+ */
+export interface Link extends Atom {
+  outgoing: string[]; // Array of atom IDs that this link connects
+}
+
+/**
+ * Common link types in OpenCog hypergraph
+ */
+export enum LinkType {
+  InheritanceLink = 'InheritanceLink',
+  SimilarityLink = 'SimilarityLink',
+  EvaluationLink = 'EvaluationLink',
+  ImplicationLink = 'ImplicationLink',
+  ListLink = 'ListLink',
+  ExecutionLink = 'ExecutionLink',
+  MemberLink = 'MemberLink',
+  SubsetLink = 'SubsetLink',
+}
+
+/**
+ * HyperGraphQL query for traversing the hypergraph
+ */
+export interface HyperGraphQLQuery {
+  operation: 'traverse' | 'match' | 'find';
+  pattern?: AtomPattern;
+  startAtomId?: string;
+  direction?: 'incoming' | 'outgoing' | 'both';
+  depth?: number;
+  filters?: HyperGraphFilter[];
+}
+
+/**
+ * Pattern for matching atoms in the hypergraph
+ */
+export interface AtomPattern {
+  type?: string;
+  name?: string;
+  linkType?: LinkType;
+  outgoing?: AtomPattern[];
+  truthValueMin?: number;
+  attentionMin?: number;
+}
+
+/**
+ * Filter for hypergraph queries
+ */
+export interface HyperGraphFilter {
+  field: 'type' | 'name' | 'truthValue' | 'attentionValue';
+  operator: 'equals' | 'contains' | 'greaterThan' | 'lessThan';
+  value: unknown;
+}
+
+/**
+ * Result of a HyperGraphQL query
+ */
+export interface HyperGraphQLResult {
+  atoms: Atom[];
+  links: Link[];
+  paths?: AtomPath[];
+}
+
+/**
+ * Path through the hypergraph
+ */
+export interface AtomPath {
+  atoms: string[]; // Ordered array of atom IDs
+  links: string[]; // Links connecting the atoms
+}
+
+/**
+ * Help article from the help center
+ */
+export interface HelpArticle {
+  id: string;
+  categoryId: string;
+  title: string;
+  content: string;
+  url: string;
+  tags: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Help category
+ */
+export interface HelpCategory {
+  id: string;
+  name: string;
+  description: string;
+  order: number;
+}
+
+/**
+ * Help section
+ */
+export interface HelpSection {
+  id: string;
+  categoryId: string;
+  name: string;
+  articles: HelpArticle[];
+}
+
+/**
+ * Knowledge graph statistics
+ */
+export interface KnowledgeGraphStats {
+  totalAtoms: number;
+  totalLinks: number;
+  categories: number;
+  articles: number;
+  tags: number;
+  lastSync?: Date;
+}
