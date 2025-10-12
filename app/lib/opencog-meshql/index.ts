@@ -1,6 +1,7 @@
 export {OpenCogMeshQLService} from './OpenCogMeshQLService';
 export {MeshQLScheduler} from './MeshQLScheduler';
 export {MeshQLQueryBuilder} from './MeshQLQueryBuilder';
+export {HyperGraphQLBuilder} from './HyperGraphQLBuilder';
 
 export type {
   MeshNode,
@@ -12,6 +13,12 @@ export type {
   Atom,
   TruthValue,
   AttentionValue,
+  Link,
+  HyperGraphQLQuery,
+  HyperGraphQLResult,
+  AtomPattern,
+  HyperGraphFilter,
+  AtomPath,
 } from './types';
 
-export {NodeStatus, CognitiveOperation} from './types';
+export {NodeStatus, CognitiveOperation, LinkType} from './types';

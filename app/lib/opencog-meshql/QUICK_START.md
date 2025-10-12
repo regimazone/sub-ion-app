@@ -220,6 +220,47 @@ Run the tests:
 npm run test app/lib/opencog-meshql
 ```
 
+## 🕸️ Working with HyperGraphs
+
+### Quick HyperGraph Example
+
+```typescript
+import {HyperGraphQLBuilder, LinkType} from '~/lib/opencog-meshql';
+
+// Add some atoms
+meshService.addAtom({
+  id: 'customer-123',
+  type: 'ConceptNode',
+  name: 'Customer',
+});
+
+meshService.addAtom({
+  id: 'subscription-456',
+  type: 'ConceptNode',
+  name: 'Subscription',
+});
+
+// Connect them with a link
+meshService.addLink({
+  id: 'has-subscription-link',
+  type: LinkType.EvaluationLink,
+  outgoing: ['customer-123', 'subscription-456'],
+  truthValue: {strength: 0.95, confidence: 0.9},
+});
+
+// Traverse the graph
+const query = HyperGraphQLBuilder.create()
+  .operation('traverse')
+  .startFrom('customer-123')
+  .direction('outgoing')
+  .depth(2)
+  .build();
+
+const result = meshService.executeHyperGraphQuery(query);
+console.log('Found atoms:', result.atoms);
+console.log('Found links:', result.links);
+```
+
 ## 📖 More Information
 
 - Full documentation: `app/lib/opencog-meshql/README.md`
@@ -247,6 +288,18 @@ const query = MeshQLQueryBuilder.create()
   .build();
 ```
 
+## 🔗 Link Types
+
+Available link types for hypergraphs:
+- **InheritanceLink**: A inherits from B
+- **SimilarityLink**: A is similar to B
+- **EvaluationLink**: Predicate evaluation
+- **ImplicationLink**: A implies B
+- **ListLink**: Ordered list of atoms
+- **ExecutionLink**: Executable operation
+- **MemberLink**: Set membership
+- **SubsetLink**: Subset relationship
+
 ---
 
-**That's it!** You're now ready to use OpenCog meshQL for distributed cognitive operations. 🎉
+**That's it!** You're now ready to use OpenCog meshQL for distributed cognitive operations with HyperGraphQL! 🎉
