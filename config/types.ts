@@ -1,5 +1,6 @@
 import type {LoggerOptions} from 'pino';
 import type {CloudTaskSchedulerConfig} from '~/lib/jobs';
+import type {OpenCogMeshQLConfig} from '~/lib/opencog-meshql';
 
 export type ObjectValues<T> = T[keyof T];
 
@@ -27,7 +28,8 @@ interface ShopifyAppConfig {
 type JobSchedulerConfig =
   | {scheduler: 'INLINE'}
   | {scheduler: 'TEST'}
-  | {scheduler: 'CLOUD_TASKS'; config: CloudTaskSchedulerConfig};
+  | {scheduler: 'CLOUD_TASKS'; config: CloudTaskSchedulerConfig}
+  | {scheduler: 'MESHQL'; config: OpenCogMeshQLConfig};
 
 export interface Configuration {
   environment: NodeEnv;
