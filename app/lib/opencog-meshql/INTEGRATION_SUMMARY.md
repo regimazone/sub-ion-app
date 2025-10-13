@@ -313,7 +313,7 @@ GET ${baseUrl}/api/v2/help_center/${locale}/categories/${id}/articles.json
 
 ## How to Use
 
-### Basic Setup
+### Basic Setup with Real API
 
 ```typescript
 import {
@@ -336,27 +336,50 @@ const meshService = new OpenCogMeshQLService({
   heartbeatIntervalMs: 1000,
 });
 
-// Create help adapter
+// Create help adapter with real API
 const helpAdapter = new ShopifyMarketplaceHelpAdapter(
   meshService,
   {
     baseUrl: 'https://www.shopifymarketplaceconnecthelp.com',
     locale: 'en-us',
+    useRealApi: true, // Fetch from real API
+    requestTimeoutMs: 10000, // 10 second timeout
   },
   logger,
 );
 
-// Sync help center
+// Sync help center (fetches from real API)
 await helpAdapter.syncHelpCenter();
 
 // Search for articles
 const articles = helpAdapter.searchByTag('setup');
 ```
 
-### Run the Example
+### Development/Testing with Fallback Data
 
+```typescript
+// Use fallback data for tests or when API is unavailable
+const helpAdapter = new ShopifyMarketplaceHelpAdapter(
+  meshService,
+  {
+    baseUrl: 'https://www.shopifymarketplaceconnecthelp.com',
+    locale: 'en-us',
+    useRealApi: false, // Use simulated data
+  },
+  logger,
+);
+```
+
+### Run the Examples
+
+**Basic integration example (with fallback data):**
 ```bash
 npm run tsx app/lib/opencog-meshql/examples/shopify-help-integration.ts
+```
+
+**Test real API integration:**
+```bash
+npm run tsx app/lib/opencog-meshql/examples/test-real-api.ts
 ```
 
 ### Run the Tests

@@ -128,7 +128,33 @@ Supports five core cognitive operations:
 - Attention values for focus management
 - Query atoms by type or ID
 
-### 5. Monitoring & Observability
+### 5. Shopify Marketplace Connect Help Center Integration **[ENHANCED]**
+- **Real-time HTTP API integration with Zendesk Help Center** **[NEW]**
+  - Fetches categories from: `${baseUrl}/api/v2/help_center/${locale}/categories.json`
+  - Fetches articles from: `${baseUrl}/api/v2/help_center/${locale}/categories/${id}/articles.json`
+- **Configurable API behavior** **[NEW]**
+  - `useRealApi`: Toggle between real API and fallback data (default: true)
+  - `requestTimeoutMs`: Configurable timeout with AbortController (default: 10s)
+- **Robust error handling** **[NEW]**
+  - Automatic fallback to simulated data on API failures
+  - Timeout handling with AbortController
+  - HTTP error detection (4xx, 5xx)
+  - Network failure resilience
+- **Content processing** **[NEW]**
+  - HTML tag stripping for article content
+  - Entity decoding (&nbsp;, &amp;, etc.)
+  - Clean text extraction from HTML body
+- **Comprehensive logging** **[NEW]**
+  - Debug logs for API requests
+  - Info logs for successful fetches
+  - Warning logs for fallback scenarios
+  - Error logs with detailed context
+- Knowledge graph construction from help content
+- Tag-based and keyword search
+- Context-aware article recommendations
+- Intelligent caching with staleness detection
+
+### 6. Monitoring & Observability
 - Detailed logging using pino logger
 - Execution time tracking
 - Node status monitoring
@@ -367,13 +393,20 @@ The implementation provides a solid foundation for:
 - Updated: `app/lib/opencog-meshql/index.ts` - Added HyperGraphQL exports
 - Updated: `app/lib/opencog-meshql/README.md` - Added HyperGraphQL documentation
 
-### Shopify Marketplace Connect Help Integration (4 new files + updates):
-- `app/lib/opencog-meshql/ShopifyMarketplaceHelpAdapter.ts` **[NEW]**
-- `app/lib/opencog-meshql/tests/ShopifyMarketplaceHelpAdapter.test.ts` **[NEW]**
+### Shopify Marketplace Connect Help Integration (5 new files + updates):
+- `app/lib/opencog-meshql/ShopifyMarketplaceHelpAdapter.ts` **[NEW]** - **Now with real HTTP API integration!**
+  - Real-time fetching from Zendesk-based Help Center API
+  - Configurable timeout and error handling
+  - Graceful fallback to simulated data
+  - HTML stripping for article content
+  - Comprehensive logging and monitoring
+- `app/lib/opencog-meshql/tests/ShopifyMarketplaceHelpAdapter.test.ts` **[NEW]** - Updated with API mode tests
 - `app/lib/opencog-meshql/examples/shopify-help-integration.ts` **[NEW]**
-- `app/lib/opencog-meshql/SHOPIFY_HELP_INTEGRATION.md` **[NEW]**
+- `app/lib/opencog-meshql/examples/test-real-api.ts` **[NEW]** - API integration test script
+- `app/lib/opencog-meshql/SHOPIFY_HELP_INTEGRATION.md` **[NEW]** - Updated with API documentation
 - Updated: `app/lib/opencog-meshql/types.ts` - Added help article types
 - Updated: `app/lib/opencog-meshql/index.ts` - Added ShopifyMarketplaceHelpAdapter export
+- Updated: `app/lib/opencog-meshql/INTEGRATION_SUMMARY.md` - Added API integration details
 
 ## Conclusion
 
@@ -385,8 +418,10 @@ This implementation successfully adds OpenCog as a distributed service-daemon me
 ✅ **Graph traversal and pattern matching (HyperGraphQL)** **[NEW]**
 ✅ **Bidirectional link indexing for efficient queries** **[NEW]**
 ✅ **Shopify Marketplace Connect Help Center integration** **[NEW]**
+✅ **Real HTTP API integration with Zendesk Help Center** **[ENHANCED]**
 ✅ **Intelligent help article discovery and recommendations** **[NEW]**
 ✅ **Knowledge graph for help content** **[NEW]**
+✅ **Graceful error handling and fallback mechanisms** **[NEW]**
 ✅ Seamless integration with existing job system
 ✅ Comprehensive type safety
 ✅ Full test coverage (90+ test cases)
