@@ -42,6 +42,8 @@ const helpAdapter = new ShopifyMarketplaceHelpAdapter(
     locale: 'en-us',
     autoFetch: false, // We'll manually sync
     cacheDurationMs: 3600000, // 1 hour
+    useRealApi: true, // Set to true to fetch from real API, false for fallback data
+    requestTimeoutMs: 10000, // 10 second timeout
   },
   logger,
 );
