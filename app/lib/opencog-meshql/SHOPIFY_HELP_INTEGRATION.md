@@ -401,6 +401,41 @@ interface ShopifyMarketplaceHelpConfig {
 }
 ```
 
+### URL Normalization
+
+The adapter automatically handles different URL formats:
+
+```typescript
+// Both of these work the same way:
+
+// Format 1: Base URL without locale path
+const adapter1 = new ShopifyMarketplaceHelpAdapter(
+  meshService,
+  {
+    baseUrl: 'https://www.shopifymarketplaceconnecthelp.com',
+    locale: 'en-us',
+  },
+  logger,
+);
+
+// Format 2: Base URL with locale path (locale is extracted)
+const adapter2 = new ShopifyMarketplaceHelpAdapter(
+  meshService,
+  {
+    baseUrl: 'https://www.shopifymarketplaceconnecthelp.com/hc/en-us',
+  },
+  logger,
+);
+
+// Both generate the same article URLs:
+// https://www.shopifymarketplaceconnecthelp.com/hc/en-us/articles/...
+```
+
+**Note**: If the base URL includes `/hc/{locale}`, the adapter will:
+1. Extract the locale from the URL
+2. Remove `/hc/{locale}` from the base URL
+3. Use the extracted locale unless explicitly provided in the config
+
 ## API Reference
 
 ### ShopifyMarketplaceHelpAdapter
