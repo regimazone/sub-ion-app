@@ -37,6 +37,7 @@ describe('ShopifyMarketplaceHelpAdapter', () => {
         baseUrl: 'https://www.shopifymarketplaceconnecthelp.com',
         locale: 'en-us',
         autoFetch: false,
+        useRealApi: false, // Use fallback data for tests
       },
       logger,
     );
@@ -52,6 +53,7 @@ describe('ShopifyMarketplaceHelpAdapter', () => {
         meshService,
         {
           baseUrl: 'https://example.com',
+          useRealApi: false,
         },
         logger,
       );
@@ -63,6 +65,7 @@ describe('ShopifyMarketplaceHelpAdapter', () => {
         meshService,
         {
           baseUrl: 'https://www.shopifymarketplaceconnecthelp.com/hc/en-us',
+          useRealApi: false,
         },
         logger,
       );
@@ -84,6 +87,7 @@ describe('ShopifyMarketplaceHelpAdapter', () => {
         meshService,
         {
           baseUrl: 'https://www.shopifymarketplaceconnecthelp.com/hc/fr-fr',
+          useRealApi: false,
         },
         logger,
       );
@@ -102,6 +106,7 @@ describe('ShopifyMarketplaceHelpAdapter', () => {
         {
           baseUrl: 'https://www.shopifymarketplaceconnecthelp.com/hc/fr-fr',
           locale: 'de-de',
+          useRealApi: false,
         },
         logger,
       );
@@ -120,6 +125,7 @@ describe('ShopifyMarketplaceHelpAdapter', () => {
         {
           baseUrl: 'https://example.com/',
           locale: 'en-us',
+          useRealApi: false,
         },
         logger,
       );
@@ -131,6 +137,7 @@ describe('ShopifyMarketplaceHelpAdapter', () => {
         meshService,
         {
           baseUrl: 'https://www.shopifymarketplaceconnecthelp.com/hc/en-us/',
+          useRealApi: false,
         },
         logger,
       );
@@ -392,6 +399,41 @@ describe('ShopifyMarketplaceHelpAdapter', () => {
         'setup products orders inventory',
       );
       expect(recommended.length).toBeLessThanOrEqual(5);
+    });
+  });
+
+  describe('Real API Integration', () => {
+    it('should support real API mode when configured', () => {
+      const realApiAdapter = new ShopifyMarketplaceHelpAdapter(
+        meshService,
+        {
+          baseUrl: 'https://www.shopifymarketplaceconnecthelp.com',
+          locale: 'en-us',
+          useRealApi: true,
+          requestTimeoutMs: 5000,
+        },
+        logger,
+      );
+      expect(realApiAdapter).toBeDefined();
+    });
+
+    it('should fallback to simulated data when useRealApi is false', async () => {
+      const fallbackAdapter = new ShopifyMarketplaceHelpAdapter(
+        meshService,
+        {
+          baseUrl: 'https://www.shopifymarketplaceconnecthelp.com',
+          locale: 'en-us',
+          useRealApi: false,
+        },
+        logger,
+      );
+      
+      await fallbackAdapter.syncHelpCenter();
+      const stats = fallbackAdapter.getKnowledgeGraphStats();
+      
+      // Should have fallback categories and articles
+      expect(stats.categories).toBeGreaterThan(0);
+      expect(stats.articles).toBeGreaterThan(0);
     });
   });
 

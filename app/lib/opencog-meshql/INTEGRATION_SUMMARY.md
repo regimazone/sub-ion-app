@@ -11,6 +11,7 @@ This integration connects the **Shopify Marketplace Connect Help Center** (https
 A sophisticated adapter that bridges the help center with the hypergraph atomspace:
 
 **Features:**
+- ✅ **Real API Integration**: Fetches live data from Shopify Help Center API
 - ✅ Automatic syncing of help categories and articles
 - ✅ Knowledge graph structure with atoms and links
 - ✅ Tag-based article discovery
@@ -20,6 +21,8 @@ A sophisticated adapter that bridges the help center with the hypergraph atomspa
 - ✅ Intelligent caching with configurable duration
 - ✅ Cache invalidation and refresh
 - ✅ Comprehensive statistics and monitoring
+- ✅ Graceful fallback to simulated data on API failures
+- ✅ Configurable request timeouts and error handling
 
 ### 2. Knowledge Graph Structure
 
@@ -266,6 +269,8 @@ const helpAdapter = new ShopifyMarketplaceHelpAdapter(
     locale: 'en-us',              // Language/locale
     autoFetch: true,               // Auto-sync on init
     cacheDurationMs: 3600000,      // 1 hour
+    useRealApi: true,              // Fetch from real API (default: true)
+    requestTimeoutMs: 10000,       // Request timeout (default: 10s)
   },
   logger,
 );
@@ -279,19 +284,36 @@ const helpAdapter = new ShopifyMarketplaceHelpAdapter(
 - **Cache Hit Rate**: High for repeated queries
 - **Scalability**: Handles 100+ articles efficiently
 
+## API Integration
+
+The adapter now includes **full HTTP integration** with the Shopify Help Center API:
+
+- ✅ **Real-time Data Fetching**: Uses Zendesk API endpoints
+- ✅ **Timeout Handling**: Configurable request timeouts with AbortController
+- ✅ **Error Resilience**: Automatic fallback to simulated data on failures
+- ✅ **HTML Processing**: Strips HTML tags from article content
+- ✅ **Flexible Configuration**: Toggle between real API and fallback mode
+
+**API Endpoints:**
+```
+GET ${baseUrl}/api/v2/help_center/${locale}/categories.json
+GET ${baseUrl}/api/v2/help_center/${locale}/categories/${id}/articles.json
+```
+
 ## Future Enhancements
 
-1. **Real HTTP Fetching**: Implement actual API calls to help center
+1. **Pagination Support**: Handle large result sets from the API
 2. **Full-Text Search**: Add Elasticsearch for advanced search
 3. **Machine Learning**: ML-based article recommendations
-4. **Multilingual Support**: Support multiple languages
+4. **Rate Limiting**: Implement exponential backoff for API requests
 5. **Analytics**: Track article effectiveness
 6. **Auto-Sync**: Background job for content freshness
 7. **Webhooks**: Real-time updates on content changes
+8. **Enhanced Caching**: Redis support for distributed deployments
 
 ## How to Use
 
-### Basic Setup
+### Basic Setup with Real API
 
 ```typescript
 import {
@@ -314,27 +336,50 @@ const meshService = new OpenCogMeshQLService({
   heartbeatIntervalMs: 1000,
 });
 
-// Create help adapter
+// Create help adapter with real API
 const helpAdapter = new ShopifyMarketplaceHelpAdapter(
   meshService,
   {
     baseUrl: 'https://www.shopifymarketplaceconnecthelp.com',
     locale: 'en-us',
+    useRealApi: true, // Fetch from real API
+    requestTimeoutMs: 10000, // 10 second timeout
   },
   logger,
 );
 
-// Sync help center
+// Sync help center (fetches from real API)
 await helpAdapter.syncHelpCenter();
 
 // Search for articles
 const articles = helpAdapter.searchByTag('setup');
 ```
 
-### Run the Example
+### Development/Testing with Fallback Data
 
+```typescript
+// Use fallback data for tests or when API is unavailable
+const helpAdapter = new ShopifyMarketplaceHelpAdapter(
+  meshService,
+  {
+    baseUrl: 'https://www.shopifymarketplaceconnecthelp.com',
+    locale: 'en-us',
+    useRealApi: false, // Use simulated data
+  },
+  logger,
+);
+```
+
+### Run the Examples
+
+**Basic integration example (with fallback data):**
 ```bash
 npm run tsx app/lib/opencog-meshql/examples/shopify-help-integration.ts
+```
+
+**Test real API integration:**
+```bash
+npm run tsx app/lib/opencog-meshql/examples/test-real-api.ts
 ```
 
 ### Run the Tests

@@ -32,6 +32,10 @@ export interface ShopifyMarketplaceHelpConfig {
   autoFetch?: boolean;
   /** Cache duration in milliseconds */
   cacheDurationMs?: number;
+  /** Whether to use real API calls or fallback to simulated data (default: true for real API) */
+  useRealApi?: boolean;
+  /** Request timeout in milliseconds (default: 10000) */
+  requestTimeoutMs?: number;
 }
 
 export class ShopifyMarketplaceHelpAdapter {
@@ -57,6 +61,8 @@ export class ShopifyMarketplaceHelpAdapter {
       locale,
       autoFetch: config.autoFetch ?? false,
       cacheDurationMs: config.cacheDurationMs || 3600000, // 1 hour default
+      useRealApi: config.useRealApi ?? true,
+      requestTimeoutMs: config.requestTimeoutMs || 10000,
     };
     this.meshService = meshService;
     this.logger = logger;
@@ -170,10 +176,73 @@ export class ShopifyMarketplaceHelpAdapter {
 
   /**
    * Fetch categories from the help center
-   * In a real implementation, this would make HTTP requests
+   * Fetches from Zendesk API used by Shopify Help Center
    */
   private async fetchCategories(): Promise<HelpCategory[]> {
-    // Simulated categories based on common Shopify Marketplace Connect topics
+    // If configured to use fallback data, skip API call
+    if (!this.config.useRealApi) {
+      this.logger.debug('Using fallback categories (useRealApi=false)');
+      return this.getFallbackCategories();
+    }
+
+    try {
+      const url = `${this.config.baseUrl}/api/v2/help_center/${this.config.locale}/categories.json`;
+      this.logger.debug({url}, 'Fetching categories from help center');
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.config.requestTimeoutMs);
+
+      const response = await fetch(url, {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'OpenCog-HyperGraph-Adapter/1.0',
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        this.logger.warn(
+          {status: response.status, statusText: response.statusText},
+          'Failed to fetch categories from help center API, using fallback data',
+        );
+        return this.getFallbackCategories();
+      }
+
+      const data = await response.json() as {
+        categories: Array<{
+          id: number;
+          name: string;
+          description: string;
+          position: number;
+        }>;
+      };
+
+      this.logger.info(
+        {count: data.categories.length},
+        'Successfully fetched categories from help center',
+      );
+
+      return data.categories.map((cat) => ({
+        id: `category-${cat.id}`,
+        name: cat.name,
+        description: cat.description || '',
+        order: cat.position,
+      }));
+    } catch (error) {
+      this.logger.error(
+        {error: error instanceof Error ? error.message : String(error)},
+        'Error fetching categories from help center, using fallback data',
+      );
+      return this.getFallbackCategories();
+    }
+  }
+
+  /**
+   * Get fallback categories when API is unavailable
+   */
+  private getFallbackCategories(): HelpCategory[] {
     return [
       {
         id: 'category-setup',
@@ -242,11 +311,101 @@ export class ShopifyMarketplaceHelpAdapter {
 
   /**
    * Fetch articles for a specific category
+   * Fetches from Zendesk API used by Shopify Help Center
    */
   private async fetchArticlesForCategory(
     categoryId: string,
   ): Promise<HelpArticle[]> {
-    // Simulated articles based on category
+    // If configured to use fallback data, skip API call
+    if (!this.config.useRealApi) {
+      this.logger.debug({categoryId}, 'Using fallback articles (useRealApi=false)');
+      return this.getFallbackArticles(categoryId);
+    }
+
+    try {
+      // Extract numeric ID from category ID (e.g., 'category-123' -> '123')
+      const numericId = categoryId.replace('category-', '');
+      const url = `${this.config.baseUrl}/api/v2/help_center/${this.config.locale}/categories/${numericId}/articles.json`;
+      this.logger.debug({url, categoryId}, 'Fetching articles for category');
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.config.requestTimeoutMs);
+
+      const response = await fetch(url, {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'OpenCog-HyperGraph-Adapter/1.0',
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        this.logger.warn(
+          {status: response.status, statusText: response.statusText, categoryId},
+          'Failed to fetch articles from help center API, using fallback data',
+        );
+        return this.getFallbackArticles(categoryId);
+      }
+
+      const data = await response.json() as {
+        articles: Array<{
+          id: number;
+          title: string;
+          body?: string;
+          html_url: string;
+          label_names?: string[];
+          created_at: string;
+          updated_at: string;
+        }>;
+      };
+
+      this.logger.info(
+        {count: data.articles.length, categoryId},
+        'Successfully fetched articles for category',
+      );
+
+      return data.articles.map((article) => ({
+        id: `article-${article.id}`,
+        categoryId,
+        title: article.title,
+        content: this.stripHtml(article.body || ''),
+        url: article.html_url,
+        tags: article.label_names || [],
+        createdAt: new Date(article.created_at),
+        updatedAt: new Date(article.updated_at),
+      }));
+    } catch (error) {
+      this.logger.error(
+        {error: error instanceof Error ? error.message : String(error), categoryId},
+        'Error fetching articles for category, using fallback data',
+      );
+      return this.getFallbackArticles(categoryId);
+    }
+  }
+
+  /**
+   * Strip HTML tags from content to get plain text
+   */
+  private stripHtml(html: string): string {
+    // Basic HTML stripping - remove tags and decode entities
+    return html
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  /**
+   * Get fallback articles when API is unavailable
+   */
+  private getFallbackArticles(categoryId: string): HelpArticle[] {
     const articlesByCategory: Record<string, HelpArticle[]> = {
       'category-setup': [
         {

@@ -84,6 +84,8 @@ const helpAdapter = new ShopifyMarketplaceHelpAdapter(
     locale: 'en-us',
     autoFetch: true, // Automatically sync on initialization
     cacheDurationMs: 3600000, // 1 hour
+    useRealApi: true, // Fetch from real API (set to false for fallback data)
+    requestTimeoutMs: 10000, // Request timeout in milliseconds
   },
   logger,
 );
@@ -398,6 +400,12 @@ interface ShopifyMarketplaceHelpConfig {
   
   /** Cache duration in milliseconds (default: 1 hour) */
   cacheDurationMs?: number;
+  
+  /** Whether to use real API calls or fallback data (default: true) */
+  useRealApi?: boolean;
+  
+  /** Request timeout in milliseconds (default: 10000) */
+  requestTimeoutMs?: number;
 }
 ```
 
@@ -514,15 +522,66 @@ Run the example:
 npm run tsx app/lib/opencog-meshql/examples/shopify-help-integration.ts
 ```
 
+## API Integration
+
+The adapter now supports **real-time fetching** from the Shopify Marketplace Connect Help Center API:
+
+### Real API Mode
+
+When `useRealApi: true` (default), the adapter fetches live data from the Zendesk API:
+
+```typescript
+const helpAdapter = new ShopifyMarketplaceHelpAdapter(
+  meshService,
+  {
+    baseUrl: 'https://www.shopifymarketplaceconnecthelp.com',
+    locale: 'en-us',
+    useRealApi: true, // Fetch from real API
+    requestTimeoutMs: 10000, // 10 second timeout
+  },
+  logger,
+);
+```
+
+**API Endpoints Used:**
+- Categories: `${baseUrl}/api/v2/help_center/${locale}/categories.json`
+- Articles: `${baseUrl}/api/v2/help_center/${locale}/categories/${categoryId}/articles.json`
+
+### Fallback Mode
+
+When `useRealApi: false`, the adapter uses simulated data for testing:
+
+```typescript
+const helpAdapter = new ShopifyMarketplaceHelpAdapter(
+  meshService,
+  {
+    baseUrl: 'https://www.shopifymarketplaceconnecthelp.com',
+    useRealApi: false, // Use fallback data
+  },
+  logger,
+);
+```
+
+### Error Handling
+
+The adapter gracefully handles API failures:
+- Network timeouts (configurable via `requestTimeoutMs`)
+- HTTP errors (4xx, 5xx)
+- Malformed responses
+- Connection failures
+
+In all error cases, the adapter automatically falls back to simulated data and logs the error.
+
 ## Future Enhancements
 
-1. **Real HTTP Fetching**: Implement actual HTTP requests to fetch help content
+1. **Pagination Support**: Handle paginated API responses for large help centers
 2. **Full-Text Search**: Add Elasticsearch or similar for advanced search
 3. **Machine Learning**: Use ML for better article recommendations
-4. **Multilingual Support**: Support multiple languages/locales
+4. **Enhanced Caching**: Add Redis or similar for distributed caching
 5. **Analytics**: Track which articles are most helpful
 6. **Auto-Sync**: Background job to keep content fresh
 7. **Webhooks**: Real-time updates when help content changes
+8. **Rate Limiting**: Implement exponential backoff for API requests
 
 ## Best Practices
 
