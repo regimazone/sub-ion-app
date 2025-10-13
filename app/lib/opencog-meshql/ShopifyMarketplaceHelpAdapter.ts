@@ -46,9 +46,15 @@ export class ShopifyMarketplaceHelpAdapter {
     config: ShopifyMarketplaceHelpConfig,
     logger: Logger,
   ) {
+    // Normalize baseUrl and locale
+    const {baseUrl, locale} = this.normalizeUrlAndLocale(
+      config.baseUrl,
+      config.locale,
+    );
+
     this.config = {
-      baseUrl: config.baseUrl,
-      locale: config.locale || 'en-us',
+      baseUrl,
+      locale,
       autoFetch: config.autoFetch ?? false,
       cacheDurationMs: config.cacheDurationMs || 3600000, // 1 hour default
     };
@@ -58,6 +64,45 @@ export class ShopifyMarketplaceHelpAdapter {
     if (this.config.autoFetch) {
       this.initialize();
     }
+  }
+
+  /**
+   * Normalize baseUrl and extract locale if present in the URL
+   * Handles cases where baseUrl includes /hc/{locale} path
+   * 
+   * Examples:
+   * - 'https://example.com/hc/en-us' -> baseUrl: 'https://example.com', locale: 'en-us'
+   * - 'https://example.com' + locale: 'fr' -> baseUrl: 'https://example.com', locale: 'fr'
+   */
+  private normalizeUrlAndLocale(
+    baseUrl: string,
+    locale?: string,
+  ): {baseUrl: string; locale: string} {
+    // Remove trailing slash if present
+    let normalizedUrl = baseUrl.replace(/\/$/, '');
+    
+    // Pattern to match /hc/{locale} at the end of the URL
+    const hcLocalePattern = /\/hc\/([a-z]{2}-[a-z]{2})$/i;
+    const match = normalizedUrl.match(hcLocalePattern);
+    
+    if (match) {
+      // Extract locale from URL if not explicitly provided
+      const extractedLocale = match[1];
+      // Remove /hc/{locale} from baseUrl
+      normalizedUrl = normalizedUrl.replace(hcLocalePattern, '');
+      
+      // Use extracted locale if no explicit locale was provided
+      return {
+        baseUrl: normalizedUrl,
+        locale: locale || extractedLocale,
+      };
+    }
+    
+    // No /hc/{locale} in URL, use provided locale or default
+    return {
+      baseUrl: normalizedUrl,
+      locale: locale || 'en-us',
+    };
   }
 
   /**
