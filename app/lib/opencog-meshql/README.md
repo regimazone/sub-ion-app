@@ -10,6 +10,23 @@ OpenCog meshQL provides a distributed cognitive architecture that allows you to:
 - **Query and coordinate** nodes using the meshQL query language
 - **Manage atomspace** in a distributed manner
 - **Schedule jobs** across the mesh with fault tolerance
+- **Implement marketplace connect infrastructure** with all features from the help center
+
+## Featured Implementation
+
+### 🎯 Shopify Marketplace Connect Infrastructure
+
+Complete implementation of marketplace connect features as OpenCog services:
+
+- **Multi-marketplace connections** (Amazon, eBay, Walmart, Target Plus)
+- **Product listing management** across platforms
+- **Inventory synchronization** with safety buffers
+- **Order management** and fulfillment tracking
+- **Statistics and monitoring** with hypergraph analytics
+
+📚 **[See Full Marketplace Connect Guide →](MARKETPLACE_CONNECT_GUIDE.md)**  
+📋 **[Implementation Summary →](IMPLEMENTATION_SUMMARY.md)**  
+💻 **[Example Code →](examples/marketplace-connect-demo.ts)**
 
 ## Architecture
 
